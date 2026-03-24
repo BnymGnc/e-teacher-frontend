@@ -1,105 +1,110 @@
-import React, { useEffect, useState } from 'react';
-import { Typography, Paper, Box, TextField, Button, Stack, List, ListItem, ListItemText, Divider, Chip } from '@mui/material';
-import { AccessTime, TrendingUp, CalendarToday } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper, TextField, Button, Avatar, Stack, Alert, CircularProgress } from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import api from '../lib/api';
 
 export default function Profile() {
-  const [profile, setProfile] = useState({ full_name: 'Öğrenci', username: 'ogrenci', email: 'ogrenci@e-teacher.com', bio: '' });
-  const [saving, setSaving] = useState(false);
-  const [dailyReports, setDailyReports] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
+  // Kullanıcı bilgileri state'i
+  const [userData, setUserData] = useState({
+    username: '',
+    email: '',
+    password: '' // Şifre boş gelir, sadece değiştirmek isterse yazar
+  });
+
+  // Sayfa yüklendiğinde mevcut bilgileri çek
   useEffect(() => {
-    // Profil bilgilerini (şimdilik statik/mock) yükleme
-    // İleride buraya api.get('/api/me/profile/') eklenebilir
-    
-    // LocalStorage'dan Daily Reports verilerini çekme
-    const savedReports = JSON.parse(localStorage.getItem('daily_reports') || '[]');
-    setDailyReports(savedReports);
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/auth/profile/');
+        setUserData({
+          username: response.data.username || '',
+          email: response.data.email || '',
+          password: ''
+        });
+      } catch (err) {
+        console.error("Profil çekme hatası:", err);
+      }
+    };
+    fetchProfile();
   }, []);
 
-  const handleSave = () => {
-    setSaving(true);
-    setTimeout(() => setSaving(false), 1000); // Mock kaydetme
+  const handleChange = (e) => {
+    setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  // Tarihi "20 Nisan" formatına çeviren yardımcı fonksiyon
-  const formatDate = (isoString) => {
-    const options = { day: 'numeric', month: 'long' };
-    return new Date(isoString).toLocaleDateString('tr-TR', options);
+  const handleUpdate = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      await api.put('/auth/profile/', userData);
+      setSuccess(true);
+      // Şifre kutusunu temizle
+      setUserData(prev => ({ ...prev, password: '' }));
+    } catch (err) {
+      setError('Profil güncellenirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
-      <Typography variant="h5" gutterBottom>Profilim</Typography>
-      
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="flex-start">
-        
-        {/* SOL TARAF - PROFİL BİLGİLERİ */}
-        <Paper sx={{ p: 3, flex: 1, width: '100%', borderRadius: 3 }}>
-          <Typography variant="h6" gutterBottom mb={2}>Kişisel Bilgiler</Typography>
-          <Stack spacing={2}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-              <TextField size="small" label="Kullanıcı Adı" value={profile.username} disabled fullWidth />
-              <TextField size="small" label="E-posta" value={profile.email} disabled fullWidth />
-              <TextField size="small" label="Ad Soyad" value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} fullWidth sx={{ gridColumn: { xs: 'auto', sm: '1 / span 2' } }} />
-              <TextField size="small" label="Biyografi" value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} multiline minRows={3} fullWidth sx={{ gridColumn: { xs: 'auto', sm: '1 / span 2' } }} />
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button variant="contained" onClick={handleSave} disabled={saving}>
-                {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
-              </Button>
-            </Box>
-          </Stack>
-        </Paper>
+    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4, p: 2 }}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+          <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main', mb: 2 }}>
+            <PersonIcon sx={{ fontSize: 40 }} />
+          </Avatar>
+          <Typography variant="h5" fontWeight="bold">Profil Ayarları</Typography>
+        </Box>
 
-        {/* SAĞ TARAF - GÜNLÜK ÇALIŞMA GEÇMİŞİ */}
-        <Paper variant="outlined" sx={{ p: 0, flex: 1, width: '100%', borderRadius: 3, overflow: 'hidden' }}>
-          <Box sx={{ p: 2, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider' }}>
-            <Typography variant="h6" display="flex" alignItems="center" gap={1}>
-              <CalendarToday fontSize="small" /> Günlük Çalışma Geçmişi
-            </Typography>
-          </Box>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 3 }}>Profilin başarıyla güncellendi!</Alert>}
+
+        <Stack spacing={3}>
+          <TextField
+            fullWidth
+            label="Kullanıcı Adı"
+            name="username"
+            value={userData.username}
+            onChange={handleChange}
+            variant="outlined"
+          />
+          <TextField
+            fullWidth
+            label="E-Posta Adresi"
+            name="email"
+            type="email"
+            value={userData.email}
+            disabled // E-posta genellikle değiştirilmez
+            variant="outlined"
+          />
+          <TextField
+            fullWidth
+            label="Yeni Şifre (Değiştirmek istemiyorsanız boş bırakın)"
+            name="password"
+            type="password"
+            value={userData.password}
+            onChange={handleChange}
+            variant="outlined"
+          />
           
-          {dailyReports.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">Henüz bir çalışma raporu kaydedilmemiş.</Typography>
-            </Box>
-          ) : (
-            <List sx={{ p: 0 }}>
-              {dailyReports.map((report, index) => (
-                <React.Fragment key={report.id}>
-                  <ListItem sx={{ py: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant="subtitle2" fontWeight="bold" color="primary.main">
-                        {formatDate(report.date)}
-                      </Typography>
-                      <Stack direction="row" spacing={1}>
-                        <Chip 
-                          icon={<AccessTime fontSize="small" />} 
-                          label={`${report.hours} Saat`} 
-                          size="small" 
-                          color="default" 
-                          variant="outlined" 
-                        />
-                        <Chip 
-                          icon={<TrendingUp fontSize="small" />} 
-                          label={`${report.productivity}/10`} 
-                          size="small" 
-                          color={report.productivity >= 7 ? "success" : report.productivity >= 4 ? "warning" : "error"} 
-                        />
-                      </Stack>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', width: '100%' }}>
-                      "{report.message}"
-                    </Typography>
-                  </ListItem>
-                  {index < dailyReports.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          )}
-        </Paper>
-        
-      </Stack>
+          <Button 
+            variant="contained" 
+            size="large" 
+            onClick={handleUpdate}
+            disabled={loading}
+            sx={{ py: 1.5, mt: 2 }}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Bilgilerimi Güncelle'}
+          </Button>
+        </Stack>
+      </Paper>
     </Box>
   );
 }
