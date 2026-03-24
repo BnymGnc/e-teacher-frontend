@@ -33,7 +33,7 @@ export default function PsychologicalSupport() {
 
     try {
       // Backend'deki Chat API'sine mesajı gönder
-      const response = await api.post('/api/chat/', { message: userMsg.text });
+      const response = await api.post('/chat/', { message: userMsg.text });
       
       const aiMsg = { sender: 'ai', text: response.data.reply };
       setMessages(prev => [...prev, aiMsg]);
