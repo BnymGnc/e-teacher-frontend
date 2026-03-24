@@ -2,7 +2,7 @@ import axios from 'axios'; // Hata buradaydı, düzeltildi!
 
 // Backend adresimiz (Django'nun çalıştığı port)
 const api = axios.create({
-  baseURL: 'https://e-teacher.onrender.com', // Sonundaki o fazladan slash veya tekrara dikkat!
+  baseURL: 'https://e-teacher.onrender.com/api', // Sonundaki o fazladan slash veya tekrara dikkat!
 });
 
 // Her istekten önce çalışacak aracı (Interceptor)
