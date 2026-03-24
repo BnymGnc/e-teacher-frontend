@@ -31,7 +31,7 @@ export default function QuizGenerator() {
     setShowResults(false);
 
     try {
-      const response = await api.post('/api/quiz-generate/', {
+      const response = await api.post('/quiz-generate/', {
         topic: topic,
         difficulty: difficulty,
         count: count
