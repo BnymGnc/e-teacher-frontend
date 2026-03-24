@@ -45,7 +45,7 @@ export default function DailyStudyReport() {
     try {
       const prompt = `Ben bir öğrenciyim. Bugün ${hours} saat çalıştım ve verimliliğime 10 üzerinden ${productivity} puan verdim. Günüm hakkında şu notu düştüm: "${message}". Bana şefkatli bir rehber öğretmen gibi kısaca motive edici bir değerlendirme yazar mısın?`;
       
-      const response = await api.post('/api/chat/', { message: prompt });
+      const response = await api.post('/chat/', { message: prompt });
       setAiReport(response.data.reply);
       setSuccess('Yapay Zeka raporu başarıyla oluşturuldu!');
     } catch (err) {
