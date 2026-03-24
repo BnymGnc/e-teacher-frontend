@@ -32,14 +32,16 @@ export default function PsychologicalSupport() {
     setError(null);
 
     try {
-      // Backend'deki Chat API'sine mesajı gönder
-      const response = await api.post('/chat/', { message: userMsg.text });
+      // DÜZELTME: baseURL zaten /api içerdiği için burada sadece /chat/ kullanıyoruz.
+      // String veri tipini garantiye alıyoruz.
+      const response = await api.post('/chat/', { message: String(userMsg.text) });
       
       const aiMsg = { sender: 'ai', text: response.data.reply };
       setMessages(prev => [...prev, aiMsg]);
     } catch (err) {
+      // Hatanın detayını tarayıcı konsolunda (F12) görebilmek için eklendi:
+      console.error("Chat Hatası:", err.response ? err.response.data : err.message);
       setError('Mesaj gönderilirken bir hata oluştu.');
-      // Kullanıcının mesajını geri almasını kolaylaştırmak için hata anında state'i düzeltmiyoruz, sadece uyarıyoruz.
     } finally {
       setLoading(false);
     }
