@@ -1,72 +1,140 @@
 import React, { useState, useEffect } from 'react';
 import { Drawer, Box, Typography, Divider, CircularProgress, IconButton, Paper, Stack, Chip, Grid } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import EqualizerIcon from '@mui/icons-material/Equalizer';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import api from '../lib/api';
 
 export default function ReportHistoryDrawer({ open, onClose }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { if (open) fetchReports(); }, [open]);
+  useEffect(() => {
+    if (open) {
+      fetchReports();
+    }
+  }, [open]);
 
   const fetchReports = async () => {
     setLoading(true);
     try {
       const response = await api.get('/report/all/');
-      // Backend'den gelen veriyi dizi olarak kaydet
-      setReports(Array.isArray(response.data) ? response.data : []);
+      
+      // Konsolda [ {date: ...}, {date: ...} ] şeklinde bir DİZİ görmeliyiz
+      console.log("GELEN LİSTE:", response.data);
+      
+      if (Array.isArray(response.data)) {
+        setReports(response.data);
+      } else {
+        setReports([]); // Veri liste değilse boşalt
+      }
+      
     } catch (error) {
-      console.error("Rapor çekme hatası", error);
+      console.error("Raporlar çekilemedi", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // İstatistik hesaplamaları (productivityScore ve studyHours üzerinden)
-  const calcAverage = (list, key) => {
-    if (!list || list.length === 0) return 0;
-    const total = list.reduce((sum, r) => sum + Number(r[key] || 0), 0);
-    return (total / list.length).toFixed(1);
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthlyReports = reports.filter(r => r.date && r.date.startsWith(currentMonth));
+
+  const calcAverage = (dataList, key) => {
+    if (dataList.length === 0) return 0;
+    const total = dataList.reduce((sum, r) => sum + Number(r[key] || 0), 0);
+    return (total / dataList.length).toFixed(1);
   };
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthly = reports.filter(r => r.date?.startsWith(currentMonth));
+  const overallProd = calcAverage(reports, 'productivityScore');
+  const overallHours = calcAverage(reports, 'studyHours');
+  const monthlyProd = calcAverage(monthlyReports, 'productivityScore');
+  const monthlyHours = calcAverage(monthlyReports, 'studyHours');
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 450 } } }}>
-      <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h6">Rapor Arşivi</Typography>
-        <IconButton onClick={onClose} color="inherit"><CloseIcon /></IconButton>
+    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: '100%', sm: 450 }, bgcolor: 'background.default' } }}>
+      
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'primary.main', color: 'white' }}>
+        <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+          <CalendarTodayIcon /> Rapor & Analiz
+        </Typography>
+        <IconButton onClick={onClose} sx={{ color: 'white' }}>
+          <CloseIcon />
+        </IconButton>
       </Box>
 
-      {loading ? <CircularProgress sx={{ m: 5 }} /> : (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
         <Box sx={{ p: 2 }}>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={6}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.light', color: 'white' }}>
-                <Typography variant="caption">GENEL ORTALAMA</Typography>
-                <Typography variant="h5">{calcAverage(reports, 'studyHours')}s</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={6}>
-              <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'secondary.light', color: 'white' }}>
-                <Typography variant="caption">AYLIK VERİM</Typography>
-                <Typography variant="h5">{calcAverage(monthly, 'productivityScore')}/10</Typography>
-              </Paper>
-            </Grid>
-          </Grid>
+          
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EqualizerIcon color="primary" /> İstatistik Tablosu
+            </Typography>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Paper elevation={2} sx={{ p: 2, borderRadius: 3, bgcolor: 'secondary.light', color: 'secondary.contrastText', textAlign: 'center' }}>
+                  <Typography variant="caption" fontWeight="bold" sx={{ opacity: 0.9 }}>BU AYIN ORTALAMASI</Typography>
+                  <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.3)' }} />
+                  <Typography variant="h5" fontWeight="bold">{monthlyHours} Saat</Typography>
+                  <Typography variant="body2">{monthlyProd} / 10 Verim</Typography>
+                </Paper>
+              </Grid>
 
-          <Stack spacing={2}>
-            {reports.map((report, idx) => (
-              <Paper key={idx} variant="outlined" sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-                <Typography fontWeight="bold">{report.date}</Typography>
-                <Box>
-                  <Chip label={`${report.studyHours} Saat`} size="small" sx={{ mr: 1 }} />
-                  <Chip label={`Verim: ${report.productivityScore}`} size="small" color="primary" />
-                </Box>
-              </Paper>
-            ))}
-          </Stack>
+              <Grid item xs={6}>
+                <Paper elevation={2} sx={{ p: 2, borderRadius: 3, bgcolor: 'primary.light', color: 'primary.contrastText', textAlign: 'center' }}>
+                  <Typography variant="caption" fontWeight="bold" sx={{ opacity: 0.9 }}>GENEL ORTALAMA</Typography>
+                  <Divider sx={{ my: 1, borderColor: 'rgba(255,255,255,0.3)' }} />
+                  <Typography variant="h5" fontWeight="bold">{overallHours} Saat</Typography>
+                  <Typography variant="body2">{overallProd} / 10 Verim</Typography>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+
+          <Divider sx={{ mb: 3 }} />
+
+          <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ mb: 2 }}>
+            Günlük Kayıtlar
+          </Typography>
+
+          {reports.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+              Henüz kaydedilmiş bir raporun yok.
+            </Typography>
+          ) : (
+            <Stack spacing={2}>
+              {reports.map((report, idx) => {
+                const prod = report.productivityScore || 0;
+                const hours = report.studyHours || 0;
+                return (
+                  <Paper key={idx} variant="outlined" sx={{ p: 2, borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: 'background.paper' }}>
+                    <Typography variant="subtitle2" fontWeight="bold" color="text.primary">
+                      {report.date}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Chip 
+                        icon={<AccessTimeIcon fontSize="small" />} 
+                        label={`${hours} Saat`} 
+                        size="small" 
+                        color="info" 
+                        variant="outlined" 
+                      />
+                      <Chip 
+                        label={`Verim: ${prod}/10`} 
+                        size="small" 
+                        color={prod > 6 ? "success" : prod > 4 ? "warning" : "error"} 
+                      />
+                    </Box>
+                  </Paper>
+                );
+              })}
+            </Stack>
+          )}
         </Box>
       )}
     </Drawer>

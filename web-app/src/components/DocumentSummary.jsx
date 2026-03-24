@@ -20,7 +20,7 @@ export default function DocumentSummary() {
 
     try {
       // Backend'deki gerçek özetleme API'sine istek atıyoruz
-      const response = await api.post('/api/summarize/', { text: text });
+      const response = await api.post('/summarize/', { text: text });
       setSummary(response.data.summary);
     } catch (err) {
       setError('Özet çıkarılırken bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
