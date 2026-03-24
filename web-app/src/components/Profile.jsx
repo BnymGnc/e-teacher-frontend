@@ -10,7 +10,6 @@ export default function Profile() {
 
   const [userData, setUserData] = useState({
     username: '',
-    email: '',
     password: ''
   });
 
@@ -20,7 +19,6 @@ export default function Profile() {
         const response = await api.get('/auth/profile/');
         setUserData({
           username: response.data.username || '',
-          email: response.data.email || '',
           password: ''
         });
       } catch (err) {
@@ -64,24 +62,16 @@ export default function Profile() {
         {success && <Alert severity="success" sx={{ mb: 3 }}>Profilin başarıyla güncellendi!</Alert>}
 
         <Stack spacing={3}>
+          {/* İsim kutusu "E-Posta Adresi" yapıldı ve diğer boş kutu silindi */}
           <TextField
             fullWidth
-            label="Kullanıcı Adı"
-            name="username"
+            label="E-Posta Adresi"
+            name="username" 
             value={userData.username}
             onChange={handleChange}
             variant="outlined"
           />
-          {/* E-POSTA KUTUSU: disabled sayesinde tıklanamaz ve değiştirilemez ama dolu görünür */}
-          <TextField
-            fullWidth
-            label="E-Posta Adresi"
-            name="email"
-            type="email"
-            value={userData.email}
-            disabled 
-            variant="outlined"
-          />
+          
           <TextField
             fullWidth
             label="Yeni Şifre (Değiştirmek istemiyorsanız boş bırakın)"
