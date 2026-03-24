@@ -8,14 +8,12 @@ export default function Profile() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
 
-  // Kullanıcı bilgileri state'i
   const [userData, setUserData] = useState({
     username: '',
     email: '',
-    password: '' // Şifre boş gelir, sadece değiştirmek isterse yazar
+    password: ''
   });
 
-  // Sayfa yüklendiğinde mevcut bilgileri çek
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -44,7 +42,6 @@ export default function Profile() {
     try {
       await api.put('/auth/profile/', userData);
       setSuccess(true);
-      // Şifre kutusunu temizle
       setUserData(prev => ({ ...prev, password: '' }));
     } catch (err) {
       setError('Profil güncellenirken bir hata oluştu.');
@@ -75,13 +72,14 @@ export default function Profile() {
             onChange={handleChange}
             variant="outlined"
           />
+          {/* E-POSTA KUTUSU: disabled sayesinde tıklanamaz ve değiştirilemez ama dolu görünür */}
           <TextField
             fullWidth
             label="E-Posta Adresi"
             name="email"
             type="email"
             value={userData.email}
-            disabled // E-posta genellikle değiştirilmez
+            disabled 
             variant="outlined"
           />
           <TextField
