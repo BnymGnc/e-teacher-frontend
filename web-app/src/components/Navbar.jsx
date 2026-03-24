@@ -77,11 +77,6 @@ export default function Navbar({ handleDrawerToggle, toggleColorMode, mode }) {
               <ListItemIcon><AssessmentIcon fontSize="small" /></ListItemIcon>
               Geçmiş Raporlar
             </MenuItem>
-
-            <MenuItem onClick={handleMenuClose}>
-              <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
-              Ayarlar
-            </MenuItem>
             <Divider />
             
             <MenuItem onClick={() => { toggleColorMode(); handleMenuClose(); }}>
