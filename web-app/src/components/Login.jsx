@@ -65,6 +65,11 @@ export default function Login({ toggleColorMode, mode }) {
               {loading ? <CircularProgress size={24} color="inherit" /> : 'Giriş Yap'}
             </Button>
           </Box>
+
+          {/* YENİ EKLENEN BİLGİLENDİRME KUTUSU */}
+          <Alert severity="info" sx={{ mt: 3, width: '100%', '& .MuiAlert-message': { fontSize: '0.85rem' } }}>
+            <strong>Bilgilendirme:</strong> Projemiz ücretsiz sunucularda barındırıldığı için, siteye ilk girişinizde sistemin uyanması <strong>30-50 saniye</strong> sürebilir. Anlayışınız için teşekkürler.
+          </Alert>
           
           <Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
             Hesabın yok mu? <Link to="/register" style={{ color: mode === 'dark' ? '#90caf9' : '#1976d2', textDecoration: 'none', fontWeight: 'bold' }}>Kayıt Ol</Link>
