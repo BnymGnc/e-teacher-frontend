@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Typography, Paper, Box, TextField, Button, Stack, Alert, MenuItem, Select, FormControl, IconButton } from '@mui/material';
 import { Save, TouchApp, Close } from '@mui/icons-material';
+import api from '../lib/api'; 
 
 export default function StudySchedule() {
   const [loading, setLoading] = useState(false); // Bunu ekle ki setLoading çalışsın!
@@ -217,18 +218,20 @@ export default function StudySchedule() {
       return;
     }
 
+    setLoading(true); // İşlem başladı
+    setError(null);
+    setSuccess(null);
+
     try {
-      setLoading(true); // Eğer loading state'in varsa aç
-      // DİKKAT: Burada 'api' senin axios örneğin olmalı (import api from '../lib/api')
+      // Veriyi veritabanına gönderiyoruz
       await api.post('/schedule/', { schedule: schedule });
       
       setSuccess('Program başarıyla veritabanına kaydedildi!');
-      setError(null);
     } catch (err) {
       console.error("Program kaydetme hatası:", err);
       setError('Program veritabanına kaydedilemedi. Lütfen giriş yaptığınızdan emin olun.');
     } finally {
-      setLoading(false);
+      setLoading(false); // İşlem bitti
     }
   };
 
