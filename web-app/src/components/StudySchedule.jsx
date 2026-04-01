@@ -21,7 +21,17 @@ export default function StudySchedule() {
   const [selectedSubjects, setSelectedSubjects] = useState({});
 
   useEffect(() => {
-    loadSavedSchedules();
+    const loadInitialData = async () => {
+      try {
+        const res = await api.get('/schedule/');
+        if (res.data && res.data.schedule) {
+          setSchedule(res.data.schedule);
+        }
+      } catch (err) {
+        console.log("Henüz kayıtlı bir program yok veya oturum kapalı.");
+      }
+    };
+    loadInitialData();
   }, []);
 
   const loadSavedSchedules = async () => {
@@ -201,13 +211,23 @@ export default function StudySchedule() {
   }
 
   const saveSchedule = async () => {
-    if (schedule.length === 0) return setError('Kaydedilecek program bulunamadı');
+    if (schedule.length === 0) {
+      setError('Kaydedilecek program bulunamadı');
+      return;
+    }
 
     try {
+      setLoading(true); // Eğer loading state'in varsa aç
+      // DİKKAT: Burada 'api' senin axios örneğin olmalı (import api from '../lib/api')
       await api.post('/schedule/', { schedule: schedule });
-      setSuccess('Program sadece senin hesabına kaydedildi!');
+      
+      setSuccess('Program başarıyla veritabanına kaydedildi!');
+      setError(null);
     } catch (err) {
-      setError('Program kaydedilemedi. Lütfen tekrar deneyin.');
+      console.error("Program kaydetme hatası:", err);
+      setError('Program veritabanına kaydedilemedi. Lütfen giriş yaptığınızdan emin olun.');
+    } finally {
+      setLoading(false);
     }
   };
 
