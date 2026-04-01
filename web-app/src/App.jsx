@@ -26,7 +26,7 @@ const drawerWidth = 260;
 
 // --- KORUMALI ROTA ---
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('access_token');
+  const isAuthenticated = sessionStorage.getItem('access_token');
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 

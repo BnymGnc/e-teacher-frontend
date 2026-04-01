@@ -24,19 +24,19 @@ export default function Register({ toggleColorMode, mode }) {
     }
     
     setLoading(true);
+    // Register.jsx içindeki try-catch bloğunu şöyle güncelle:
     try {
-      // Gerçek kayıt isteği atıyoruz
       await api.post('/auth/register/', { 
         email: email, 
         password: password 
       });
       
-      // Başarılı olursa login sayfasına at
+      alert('Kayıt başarılı! Lütfen giriş yapın.');
       navigate('/login');
     } catch (err) {
-      // Backend'den gelen hata mesajını yakalama
-      const errorMsg = err.response?.data?.error || 'Kayıt olurken bir hata oluştu. Şifreniz çok basit olabilir.';
-      setError(errorMsg);
+      // EKLENDİ: Backend "Bu mail zaten var" veya "Şifre harf içermeli" derse ekrana yansıt
+      const serverError = err.response?.data?.error || 'Kayıt başarısız oldu. Lütfen tekrar deneyin.';
+      setError(serverError);
     } finally {
       setLoading(false);
     }

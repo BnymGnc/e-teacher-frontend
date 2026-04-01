@@ -26,8 +26,8 @@ export default function Login({ toggleColorMode, mode }) {
       });
 
       // Gelen token'ları tarayıcıya kaydet
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
+      sessionStorage.setItem('access_token', response.data.access);
+      sessionStorage.setItem('refresh_token', response.data.refresh);
       
       // Başarılıysa anasayfaya yönlendir
       navigate('/'); 

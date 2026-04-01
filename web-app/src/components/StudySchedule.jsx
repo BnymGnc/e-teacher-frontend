@@ -24,9 +24,15 @@ export default function StudySchedule() {
     loadSavedSchedules();
   }, []);
 
-  const loadSavedSchedules = () => {
-    const saved = JSON.parse(localStorage.getItem('saved_schedules') || '[]');
-    setSavedSchedules(saved);
+  const loadSavedSchedules = async () => {
+    try {
+      const res = await api.get('/schedule/');
+      if (res.data && res.data.schedule) {
+        setSchedule(res.data.schedule);
+      }
+    } catch (err) {
+      console.error("Program yüklenirken hata:", err);
+    }
   };
 
   function cellColor(state) {
@@ -194,21 +200,15 @@ export default function StudySchedule() {
     setSuccess('Dersler yeşil ve sarı saatlere günlere dağıtılarak başarıyla yerleştirildi!');
   }
 
-  const saveSchedule = () => {
+  const saveSchedule = async () => {
     if (schedule.length === 0) return setError('Kaydedilecek program bulunamadı');
 
-    const scheduleData = {
-      title: 'Güncel Programım',
-      schedule: schedule,
-      created_at: new Date().toISOString()
-    };
-
-    const existing = JSON.parse(localStorage.getItem('saved_schedules') || '[]');
-    existing.unshift(scheduleData);
-    localStorage.setItem('saved_schedules', JSON.stringify(existing));
-
-    setSavedSchedules(existing);
-    setSuccess('Program profilinize kaydedildi!');
+    try {
+      await api.post('/schedule/', { schedule: schedule });
+      setSuccess('Program sadece senin hesabına kaydedildi!');
+    } catch (err) {
+      setError('Program kaydedilemedi. Lütfen tekrar deneyin.');
+    }
   };
 
   const placedMap = useMemo(() => {

@@ -28,7 +28,7 @@ export default function Navbar({ handleDrawerToggle, toggleColorMode, mode }) {
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
     handleMenuClose();
     navigate('/login');
   };

@@ -1,15 +1,15 @@
-import axios from 'axios'; // Hata buradaydı, düzeltildi!
+import axios from 'axios';
 
-// Backend adresimiz (Django'nun çalıştığı port)
+// Backend adresimiz (Render üzerindeki canlı sunucun)
 const api = axios.create({
-  baseURL: 'https://e-teacher.onrender.com/api', // Sonundaki o fazladan slash veya tekrara dikkat!
+  baseURL: 'https://e-teacher.onrender.com/api/', // BURASI ÇOK ÖNEMLİ, İÇİ BOŞ KALAMAZ!
 });
 
 // Her istekten önce çalışacak aracı (Interceptor)
 api.interceptors.request.use(
   (config) => {
-    // LocalStorage'dan token'ı al
-    const token = localStorage.getItem('access_token');
+    // sessionStorage'dan token'ı al
+    const token = sessionStorage.getItem('access_token'); 
     if (token) {
       // Eğer token varsa, isteğin başlığına (Headers) ekle
       config.headers.Authorization = `Bearer ${token}`;
@@ -22,4 +22,3 @@ api.interceptors.request.use(
 );
 
 export default api;
-
