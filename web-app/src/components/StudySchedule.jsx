@@ -3,6 +3,7 @@ import { Typography, Paper, Box, TextField, Button, Stack, Alert, MenuItem, Sele
 import { Save, TouchApp, Close } from '@mui/icons-material';
 
 export default function StudySchedule() {
+  const [loading, setLoading] = useState(false); // Bunu ekle ki setLoading çalışsın!
   const [courseInput, setCourseInput] = useState('');
   const [courseHours, setCourseHours] = useState(1);
   const [schedule, setSchedule] = useState([]);
