@@ -1,14 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { Typography, Paper, Box, TextField, Button, Stack, Alert, CircularProgress, Divider, LinearProgress, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Typography, Paper, Box, TextField, Button, Stack, Alert, CircularProgress, Divider, LinearProgress, Tabs, Tab } from '@mui/material';
 import ArticleIcon from '@mui/icons-material/Article';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import api from '../lib/api'; // Merkezi API
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
+import api from '../lib/api'; 
 
 export default function DocumentSummary() {
-  const [inputType, setInputType] = useState('file'); // 'file' veya 'text' sekmesi
+  const [activeTab, setActiveTab] = useState(0); // 0: Belge, 1: Metin
   const [text, setText] = useState('');
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,11 +21,9 @@ export default function DocumentSummary() {
   const fileInputRef = useRef(null);
 
   // Sekme Değiştirme
-  const handleTypeChange = (event, newType) => {
-    if (newType !== null) {
-      setInputType(newType);
-      setError(null); // Sekme değişince eski hataları temizle
-    }
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+    setError(null); // Sekme değişince hataları temizle
   };
 
   // Dosya Seçim
@@ -44,7 +43,7 @@ export default function DocumentSummary() {
     setSummary(''); 
   };
 
-  // Ortak Çalıştırma Mantığı
+  // Ortak Çalıştırma
   const executeSummary = async (url, data, config = {}) => {
     setError(null);
     setLoading(true);
@@ -61,7 +60,6 @@ export default function DocumentSummary() {
     }
   };
 
-  // Buton Tetikleyicileri
   const handleFileSummarize = () => {
     if (!selectedFile) {
       setError('Lütfen önce bir dosya seçin.');
@@ -83,58 +81,52 @@ export default function DocumentSummary() {
   const isOverLimit = text.length > MAX_CHARS;
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 3 } }}>
+    <Box sx={{ maxWidth: 850, mx: 'auto', p: { xs: 1, md: 3 } }}>
       {loading && <LinearProgress sx={{ mb: 2, borderRadius: 1 }} />}
 
-      <Stack spacing={4}>
+      <Paper elevation={3} sx={{ borderRadius: 3, overflow: 'hidden' }}>
         
-        {/* BAŞLIK */}
-        <Box sx={{ textAlign: 'center' }}>
-          <ArticleIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
-          <Typography variant="h4" fontWeight="bold" color="primary.dark" gutterBottom>
-            Akıllı Belge Özeti
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Nasıl özet çıkarmak istediğinizi seçin.
-          </Typography>
-        </Box>
-
-        {/* SEÇİM ALANI (TABS) */}
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <ToggleButtonGroup
-            color="primary"
-            value={inputType}
-            exclusive
-            onChange={handleTypeChange}
-            aria-label="Girdi Türü"
-            sx={{ 
-              bgcolor: 'background.paper', 
-              boxShadow: 2,
-              '& .MuiToggleButton-root': { px: 4, py: 1.5, fontWeight: 'bold' },
-              '& .Mui-selected': { bgcolor: 'primary.main', color: 'white !important', '&:hover': { bgcolor: 'primary.dark' } }
+        {/* EN TEPEDEKİ YATAY SEÇENEK KUTUCUKLARI (TABS) */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: '#f8fafc' }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange} 
+            variant="fullWidth"
+            textColor="primary"
+            indicatorColor="primary"
+            sx={{
+              '& .MuiTab-root': { py: 2.5, fontSize: '1.1rem', textTransform: 'none', fontWeight: '500', transition: 'all 0.3s' },
+              '& .Mui-selected': { fontWeight: 'bold', bgcolor: 'primary.50' }
             }}
           >
-            <ToggleButton value="file">
-              <CloudUploadIcon sx={{ mr: 1 }} /> Dosya Yükle
-            </ToggleButton>
-            <ToggleButton value="text">
-              <ArticleIcon sx={{ mr: 1 }} /> Metin Yapıştır
-            </ToggleButton>
-          </ToggleButtonGroup>
+            <Tab icon={<CloudUploadIcon sx={{ mb: 0.5 }} />} label="📄 Belge ile Özet" />
+            <Tab icon={<TextSnippetIcon sx={{ mb: 0.5 }} />} label="✍️ Metin ile Özet" />
+          </Tabs>
         </Box>
 
-        {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
-
-        {/* DİNAMİK İÇERİK ALANI */}
-        <Paper elevation={3} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3 }}>
+        {/* İÇERİK ALANI */}
+        <Box sx={{ p: { xs: 3, md: 5 } }}>
           
-          {/* DOSYA YÜKLEME GÖRÜNÜMÜ */}
-          {inputType === 'file' && (
-            <Stack spacing={3}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Typography variant="h4" fontWeight="bold" color="primary.dark" gutterBottom>
+              {activeTab === 0 ? 'Belgeden Özet Çıkar' : 'Metinden Özet Çıkar'}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {activeTab === 0 
+                ? 'PDF veya TXT dosyanızı yükleyin, yapay zeka sizin için analiz etsin.' 
+                : 'Ders notlarınızı veya makalenizi aşağıya yapıştırın.'}
+            </Typography>
+          </Box>
+
+          {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
+
+          {/* SADECE BELGE SEÇİLİYSE GÖSTER */}
+          {activeTab === 0 && (
+            <Stack spacing={3} animation="fadeIn 0.5s">
               <Paper 
                 variant="outlined" 
                 sx={{ 
-                  p: 4, 
+                  p: 5, 
                   border: '2px dashed', 
                   borderColor: selectedFile ? 'success.light' : 'divider',
                   bgcolor: selectedFile ? 'success.50' : 'background.default',
@@ -148,7 +140,7 @@ export default function DocumentSummary() {
                 <input type="file" hidden accept=".pdf,.txt" ref={fileInputRef} onChange={handleFileChange} />
                 {selectedFile ? (
                   <Stack alignItems="center" spacing={1}>
-                    <CheckCircleIcon color="success" sx={{ fontSize: 40 }} />
+                    <CheckCircleIcon color="success" sx={{ fontSize: 48 }} />
                     <Typography variant="h6" fontWeight="bold" color="success.main">
                       {selectedFile.name}
                     </Typography>
@@ -158,44 +150,43 @@ export default function DocumentSummary() {
                   </Stack>
                 ) : (
                   <Stack alignItems="center" spacing={1} sx={{ color: 'text.secondary' }}>
-                    <CloudUploadIcon sx={{ fontSize: 50, opacity: 0.7 }} />
+                    <CloudUploadIcon sx={{ fontSize: 56, opacity: 0.7 }} />
                     <Typography variant="h6" fontWeight="bold" color="text.primary">Cihazdan dosya seçin</Typography>
-                    <Typography variant="body2">PDF veya TXT (Maks {MAX_FILE_SIZE_MB} MB)</Typography>
+                    <Typography variant="body2">Desteklenen formatlar: PDF, TXT (Maks {MAX_FILE_SIZE_MB} MB)</Typography>
                   </Stack>
                 )}
               </Paper>
 
               <Button 
                 variant="contained" 
-                color="primary" 
                 size="large"
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
+                sx={{ py: 1.8, borderRadius: 2, fontSize: '1.1rem', fontWeight: 'bold' }}
                 onClick={handleFileSummarize}
                 disabled={loading || !selectedFile}
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                startIcon={loading ? <CircularProgress size={24} color="inherit" /> : <AutoAwesomeIcon />}
               >
-                {loading ? 'Dosya İşleniyor...' : 'Dosyayı Özetle'}
+                {loading ? 'Yapay Zeka Okuyor...' : 'Dosyayı Özetle'}
               </Button>
             </Stack>
           )}
 
-          {/* METİN YAPIŞTIRMA GÖRÜNÜMÜ */}
-          {inputType === 'text' && (
-            <Stack spacing={3}>
+          {/* SADECE METİN SEÇİLİYSE GÖSTER */}
+          {activeTab === 1 && (
+            <Stack spacing={3} animation="fadeIn 0.5s">
               <TextField
                 multiline
                 minRows={8}
                 maxRows={15}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                placeholder="Ders notlarını buraya yapıştırın..."
+                placeholder="Özetlenecek ders notlarını veya kopyaladığınız metni buraya yapıştırın..."
                 fullWidth
                 error={isOverLimit}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2, fontSize: '1.05rem' } }}
                 helperText={
                   <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: isOverLimit ? 'red' : 'inherit' }}>
-                      {isOverLimit ? 'Sınırı aştınız!' : `Maksimum ${MAX_CHARS.toLocaleString()} karakter`}
+                      {isOverLimit ? 'Sınırı aştınız!' : `En fazla ${MAX_CHARS.toLocaleString()} karakter`}
                     </span>
                     <span style={{ color: isOverLimit ? 'red' : 'inherit', fontWeight: 'bold' }}>
                       {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
@@ -206,34 +197,34 @@ export default function DocumentSummary() {
 
               <Button 
                 variant="contained" 
-                color="primary"
                 size="large"
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
+                sx={{ py: 1.8, borderRadius: 2, fontSize: '1.1rem', fontWeight: 'bold' }}
                 onClick={handleTextSummarize} 
                 disabled={loading || !text.trim() || isOverLimit}
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
+                startIcon={loading ? <CircularProgress size={24} color="inherit" /> : <AutoAwesomeIcon />}
               >
-                {loading ? 'Metin Özetleniyor...' : 'Metni Özetle'}
+                {loading ? 'Yapay Zeka Çalışıyor...' : 'Metni Özetle'}
               </Button>
             </Stack>
           )}
 
-        </Paper>
+          {/* ÖZET SONUCU (Her iki sekmede de ortak) */}
+          {summary && (
+            <Box sx={{ mt: 5, animation: 'fadeIn 0.6s ease-out' }}>
+              <Paper elevation={4} sx={{ p: 4, bgcolor: '#f8fbff', borderTop: '5px solid', borderColor: 'primary.main', borderRadius: 2 }}>
+                <Typography variant="h5" fontWeight="bold" color="primary.dark" display="flex" alignItems="center" gap={1.5} mb={2}>
+                  <AutoAwesomeIcon color="primary" fontSize="large" /> Yapay Zeka Özeti
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.9, color: '#2c3e50', fontSize: '1.1rem' }}>
+                  {summary}
+                </Typography>
+              </Paper>
+            </Box>
+          )}
 
-        {/* ÖZET SONUCU - HEMEN ALTINDA ÇIKACAK */}
-        {summary && (
-          <Paper elevation={4} sx={{ p: { xs: 3, md: 4 }, bgcolor: '#f8fbff', borderTop: '5px solid', borderColor: 'primary.main', borderRadius: 2 }}>
-            <Typography variant="h6" fontWeight="bold" color="primary.dark" display="flex" alignItems="center" gap={1} mb={2}>
-              <AutoAwesomeIcon color="primary" /> Yapay Zeka Özeti
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, color: '#2c3e50', fontSize: '1.05rem' }}>
-              {summary}
-            </Typography>
-          </Paper>
-        )}
-
-      </Stack>
+        </Box>
+      </Paper>
     </Box>
   );
 }
