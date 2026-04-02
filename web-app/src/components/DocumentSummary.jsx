@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Typography, Paper, Box, TextField, Button, Stack, Alert, CircularProgress } from '@mui/material';
+import { Typography, Paper, Box, TextField, Button, Stack, Alert, CircularProgress, Divider } from '@mui/material';
 import ArticleIcon from '@mui/icons-material/Article';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import api from '../lib/api'; // Merkezi API
 
 export default function DocumentSummary() {
@@ -9,21 +10,44 @@ export default function DocumentSummary() {
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
+  // 1. Manuel Metin Özetleme (Mevcut Fonksiyonun)
   const handleSummarize = async () => {
     if (text.trim().length < 50) {
       setError('Lütfen özet çıkarmak için en az 50 karakterlik bir metin girin.');
       return;
     }
+    executeSummary('/summarize/', { text: text });
+  };
+
+  // 2. PDF/Dosya Özetleme (Yeni Fonksiyonun)
+  const handleFileSummarize = async () => {
+    if (!selectedFile) {
+      setError('Lütfen önce bir dosya seçin.');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    executeSummary('/summarize-file/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  };
+
+  // Ortak Çalıştırma Mantığı
+  const executeSummary = async (url, data, config = {}) => {
     setError(null);
     setLoading(true);
+    setSummary('');
 
     try {
-      // Backend'deki gerçek özetleme API'sine istek atıyoruz
-      const response = await api.post('/summarize/', { text: text });
+      const response = await api.post(url, data, config);
       setSummary(response.data.summary);
     } catch (err) {
-      setError('Özet çıkarılırken bir hata oluştu. Lütfen bağlantınızı kontrol edin.');
+      const msg = err.response?.data?.error || 'Özet çıkarılırken bir hata oluştu.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -37,20 +61,58 @@ export default function DocumentSummary() {
             <ArticleIcon color="primary" sx={{ fontSize: 48 }} />
             <Typography variant="h4" fontWeight="bold" color="primary.main">Akıllı Belge Özeti</Typography>
             <Typography variant="body1" color="text.secondary">
-              Uzun ders notlarınızı veya okuma parçalarınızı aşağıya yapıştırın, yapay zeka sizin için en önemli kısımları özetlesin.
+              Metin yapıştırın veya bir PDF dosyası yükleyerek yapay zekadan özet isteyin.
             </Typography>
           </Box>
 
+          {/* DOSYA YÜKLEME ALANI */}
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              p: 3, 
+              border: '2px dashed', 
+              borderColor: selectedFile ? 'success.main' : 'primary.main',
+              bgcolor: 'action.hover',
+              textAlign: 'center',
+              cursor: 'pointer'
+            }}
+            component="label"
+          >
+            <input 
+              type="file" 
+              hidden 
+              accept=".pdf,.txt" 
+              onChange={(e) => setSelectedFile(e.target.files[0])} 
+            />
+            <CloudUploadIcon sx={{ fontSize: 40, color: selectedFile ? 'success.main' : 'primary.main', mb: 1 }} />
+            <Typography variant="body2" fontWeight="bold">
+              {selectedFile ? `Seçili Dosya: ${selectedFile.name}` : 'PDF veya TXT dosyası yüklemek için tıklayın'}
+            </Typography>
+          </Paper>
+
+          {selectedFile && (
+            <Button 
+              variant="outlined" 
+              color="success" 
+              onClick={handleFileSummarize}
+              disabled={loading}
+              startIcon={<AutoAwesomeIcon />}
+            >
+              Dosyayı Özetle
+            </Button>
+          )}
+
+          <Divider>ORADAN VEYA BURADAN</Divider>
+
+          {/* MANUEL METİN ALANI */}
           <TextField
-            label="Özetlenecek Metin"
+            label="Metin Yapıştır"
             multiline
-            minRows={6}
-            maxRows={12}
+            minRows={4}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Metni buraya yapıştırın..."
+            placeholder="Ders notlarını buraya yapıştırın..."
             fullWidth
-            variant="outlined"
           />
 
           {error && <Alert severity="error">{error}</Alert>}
@@ -59,18 +121,18 @@ export default function DocumentSummary() {
             variant="contained" 
             size="large" 
             onClick={handleSummarize} 
-            disabled={loading || !text.trim()}
+            disabled={loading || (!text.trim() && !selectedFile)}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <AutoAwesomeIcon />}
           >
-            {loading ? 'Özet Çıkarılıyor...' : 'Yapay Zeka ile Özetle'}
+            {loading ? 'Özet Çıkarılıyor...' : 'Metni Özetle'}
           </Button>
 
           {summary && (
-            <Paper variant="outlined" sx={{ p: 3, bgcolor: 'primary.light', color: 'primary.contrastText', borderRadius: 2, animation: 'fadeIn 0.5s' }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom display="flex" alignItems="center" gap={1}>
+            <Paper variant="outlined" sx={{ p: 3, bgcolor: '#f0f7ff', borderLeft: '5px solid', borderColor: 'primary.main', borderRadius: 2 }}>
+              <Typography variant="h6" fontWeight="bold" color="primary.dark" gutterBottom display="flex" alignItems="center" gap={1}>
                 <AutoAwesomeIcon /> Özet Sonucu
               </Typography>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: '#333' }}>
                 {summary}
               </Typography>
             </Paper>
