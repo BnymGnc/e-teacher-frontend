@@ -69,12 +69,15 @@ export default function Profile() {
   const handleConnectCalendar = async () => {
     setCalendarLoading(true);
     try {
+      // API'den linki metin olarak istiyoruz
       const response = await api.get('/calendar/auth/');
-      if (response.data.auth_url) {
-        // Backend'den gelen Google yetkilendirme sayfasına yönlendir
+      
+      // Gelen verinin içindeki auth_url'i al ve tarayıcıyı oraya elinle gönder
+      if (response.data && response.data.auth_url) {
         window.location.href = response.data.auth_url;
       }
     } catch (err) {
+      console.error("Takvim linki alınamadı:", err);
       setError("Takvim bağlantı linki alınamadı.");
     } finally {
       setCalendarLoading(false);
