@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, TextField, Button, Avatar, Stack, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, TextField, Button, Avatar, Stack, Alert, CircularProgress, Divider } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
+import GoogleIcon from '@mui/icons-material/Google';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import api from '../lib/api';
 
 export default function Profile() {
   const [loading, setLoading] = useState(false);
+  const [calendarLoading, setCalendarLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
   
-  // EKLENDİ: Kota state'i
   const [credits, setCredits] = useState(0); 
+  const [isCalendarConnected, setIsCalendarConnected] = useState(false); // Takvim durumu
 
   const [userData, setUserData] = useState({
     username: '',
     password: ''
   });
 
-  // Kota hesaplaması için maksimum değer
   const MAX_CREDITS = 20;
   const creditPercentage = (credits / MAX_CREDITS) * 100;
 
@@ -28,8 +30,9 @@ export default function Profile() {
           username: response.data.username || '',
           password: ''
         });
-        // EKLENDİ: Sayfa ilk açıldığında kotayı backend'den çek
         setCredits(response.data.ai_credits || 0); 
+        // Backend'den takvim bağlı mı bilgisini de alıyoruz
+        setIsCalendarConnected(response.data.is_calendar_connected || false);
       } catch (err) {
         console.error("Profil çekme hatası:", err);
       }
@@ -47,21 +50,34 @@ export default function Profile() {
     setSuccess(false);
 
     try {
-      // 1. Güncelleme isteğini at
       await api.put('/auth/profile/', userData);
       setSuccess(true);
-      setUserData(prev => ({ ...prev, password: '' })); // Şifre kutusunu temizle
+      setUserData(prev => ({ ...prev, password: '' })); 
       
-      // 2. Güncel kotayı anında ekrana yansıtmak için profili tekrar çek
       const profileRes = await api.get('/auth/profile/');
       setCredits(profileRes.data.ai_credits);
       
     } catch (err) {
-      // 3. Backend'deki özel Regex/Güvenlik mesajlarını ekrana bas
       const serverError = err.response?.data?.error || 'Profil güncellenirken bir hata oluştu.';
       setError(serverError);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // --- GOOGLE TAKVİM BAĞLAMA FONKSİYONU ---
+  const handleConnectCalendar = async () => {
+    setCalendarLoading(true);
+    try {
+      const response = await api.get('/calendar/auth/');
+      if (response.data.auth_url) {
+        // Backend'den gelen Google yetkilendirme sayfasına yönlendir
+        window.location.href = response.data.auth_url;
+      }
+    } catch (err) {
+      setError("Takvim bağlantı linki alınamadı.");
+    } finally {
+      setCalendarLoading(false);
     }
   };
 
@@ -76,9 +92,9 @@ export default function Profile() {
           <Typography variant="h5" fontWeight="bold">Profil Ayarları</Typography>
         </Box>
 
-        {/* EKLENDİ: Temaya uygun, sade Kota Göstergesi */}
+        {/* KOTA GÖSTERGESİ */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-          <Paper elevation={0} sx={{ p: 2, px: 4, bgcolor: 'action.hover', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
+          <Paper elevation={0} sx={{ p: 2, px: 4, bgcolor: 'action.hover', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 3, width: '100%' }}>
             <Box sx={{ position: 'relative', display: 'inline-flex' }}>
               <CircularProgress 
                 variant="determinate" 
@@ -101,6 +117,35 @@ export default function Profile() {
             </Box>
           </Paper>
         </Box>
+
+        {/* GOOGLE TAKVİM ENTEGRASYONU ALANI */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1.5 }}>Entegrasyonlar</Typography>
+          <Paper elevation={0} sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <GoogleIcon color={isCalendarConnected ? "primary" : "action"} />
+              <Typography variant="body1">Google Takvim</Typography>
+            </Box>
+            
+            {isCalendarConnected ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', color: 'success.main', gap: 0.5 }}>
+                <CheckCircleIcon fontSize="small" />
+                <Typography variant="body2" fontWeight="bold">Bağlı</Typography>
+              </Box>
+            ) : (
+              <Button 
+                variant="outlined" 
+                size="small" 
+                onClick={handleConnectCalendar}
+                disabled={calendarLoading}
+              >
+                {calendarLoading ? <CircularProgress size={20} /> : 'Bağla'}
+              </Button>
+            )}
+          </Paper>
+        </Box>
+
+        <Divider sx={{ mb: 4 }} />
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
         {success && <Alert severity="success" sx={{ mb: 3 }}>Profilin başarıyla güncellendi!</Alert>}
