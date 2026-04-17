@@ -1,29 +1,45 @@
-# E-Teacher Platformu (Web & Mobil) 🚀
+# 🌐 E-Teacher Web Uygulaması (Frontend)
 
-> **🎓 Değerlendirme Komitesi / Asistanlar İçin Önemli Not:**
-> Bu repository, E-Teacher platformunun Frontend mimarisini barındırmaktadır ve proje **Monorepo** yapısında kurgulanmıştır (`web-app` ve `mobile-app` olarak ikiye ayrılmıştır).
-> 
-> Platformumuzun **Web Sürümü (React)** halihazırda kodlanmış ve büyük ölçüde canlıya alınmıştır (`web-app` klasörü). 
-> İlgili ödev/proje kapsamında tasarlanan **Mobil Uygulama** sürümüne ait belgelere aşağıdaki linklerden ulaşabilirsiniz:
-> 
-> 📱 **[Mobil Uygulama MVP Kapsamı İçin Tıklayınız](./mobile-app/MVP_Kapsami.md)**
-> 📄 **[Mobil Uygulama PRD Belgesi İçin Tıklayınız](./mobile-app/PRD.md)**
->
-> *(Not: Mobil uygulama, E-Teacher'ın [Backend Reposunda](https://github.com/BnymGnc/E-Teacher-Backend) yer alan özel Machine Learning modellerini ve API uç noktalarını kullanacak şekilde tasarlanmıştır.)*
+E-Teacher, öğrencilere ve eğitmenlere yapay zeka destekli, kişiselleştirilmiş bir eğitim ekosistemi sunan modern bir platformdur. Bu repository, sistemin **React + Vite** kullanılarak geliştirilen kullanıcı arayüzünü barındırmaktadır.
 
-# React + Vite
+## 🚀 Canlı Uygulama
+Uygulama şu anda Vercel üzerinde yayındadır ve Backend servisleri ile tam entegre çalışmaktadır.
+👉 **[E-Teacher Canlı Uygulamayı Görüntüle](https://e-teacher-web.vercel.app)**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+## 🔗 Proje Ekosistemi (Polyrepo)
+E-Teacher, ölçeklenebilir bir mikro-servis mimarisi ile tasarlanmıştır. Diğer bileşenlere aşağıdan ulaşabilirsiniz:
+* ⚙️ **[Backend (Django & AI) Reposu](https://github.com/BnymGnc/E-Teacher-Backend)**
+* 📱 **[Mobil Uygulama (MVP/PRD) Reposu](https://github.com/BnymGnc/E-Teacher-Mobile-App)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## ✨ Öne Çıkan Modüller
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Platform, öğrencinin akademik başarısını artırmak için şu kritik modülleri sunar:
 
-## Expanding the ESLint configuration
+* 📅 **Google Meet & Calendar Entegrasyonu:** Eğitmenler tarafından planlanan dersler için otomatik Google Meet odaları oluşturulur ve takvimle senkronize edilir.
+* 🧠 **AI Psikolojik Destek (`/support`):** Sınav stresi ve motivasyon yönetimi için özel bir LLM asistanı.
+* 📊 **Sınav Analiz Motoru (`/analysis`):** Deneme sonuçlarını işleyerek eksik konuları tespit eden görsel raporlama sistemi.
+* 🎯 **Hedef Net Tahminleme:** Hedeflenen üniversite/bölüm verilerine (YÖK Atlas entegre) göre gereken netleri hesaplayan algoritma.
+* 📝 **Akıllı Quiz Üreticisi:** Konu ve zorluk seviyesine göre yapay zeka tarafından anlık test üretimi.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Teknik Yığın (Tech Stack)
+
+* **Frontend:** React.js, Vite
+* **State & Routing:** React Router DOM v6
+* **API İletişimi:** Axios (Render üzerindeki Django REST API ile iletişim kurar)
+* **Deployment:** Vercel (Frontend), Render (Backend)
+
+---
+
+## 💻 Yerel Kurulum
+
+Projeyi kendi bilgisayarınızda çalıştırmak için:
+
+1. **Bağımlılıkları Yükleyin:**
+   ```bash
+   npm install
